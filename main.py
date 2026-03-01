@@ -17,6 +17,9 @@ while cap.isOpened():
     if not success:
         break
 
+    # Flip the frame horizontally (mirror image)
+    frame = cv2.flip(frame, 1)
+
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     # Call each module
@@ -46,9 +49,9 @@ while cap.isOpened():
             2,
             cv2.LINE_AA
         )
-        y_position += 30  # Move to next line
+        y_position += 30
 
-    cv2.imshow("Advanced Modular MediaPipe System", frame)
+    cv2.imshow("MediaPipe System", frame)
 
     if cv2.waitKey(1) & 0xFF == 27:
         break

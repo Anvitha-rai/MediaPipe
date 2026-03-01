@@ -13,7 +13,6 @@ class PoseDetector:
         )
 
     def distance(self, p1, p2):
-        """Calculate Euclidean distance between two landmarks"""
         return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2)
 
     def detect(self, frame, rgb_frame):
@@ -21,7 +20,6 @@ class PoseDetector:
         message = ""
         
         if results.pose_landmarks:
-            # Draw skeleton
             mp_drawing.draw_landmarks(
                 frame,
                 results.pose_landmarks,
@@ -30,53 +28,38 @@ class PoseDetector:
             
             landmarks = results.pose_landmarks.landmark
             
-            # Get key landmarks
             left_wrist = landmarks[mp_pose.PoseLandmark.LEFT_WRIST]
             right_wrist = landmarks[mp_pose.PoseLandmark.RIGHT_WRIST]
             left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER]
             right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER]
-            left_elbow = landmarks[mp_pose.PoseLandmark.LEFT_ELBOW]
-            right_elbow = landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW]
             
-            # Distance checks for arm crossing
-            left_wrist_to_right_elbow = self.distance(left_wrist, right_elbow)
-            right_wrist_to_left_elbow = self.distance(right_wrist, left_elbow)
+            # Distances
+            left_to_right_shoulder = self.distance(left_wrist, right_shoulder)
+            right_to_left_shoulder = self.distance(right_wrist, left_shoulder)
             wrists_distance = self.distance(left_wrist, right_wrist)
             
-            # Thresholds (adjust if needed)
-            cross_threshold = 0.15
-            wrist_close_threshold = 0.2
-            hand_raised_margin = 0.05  # How much higher wrist needs to be above shoulder
+            # Thresholds (bigger = easier detection)
+            cross_threshold = 0.25
+            wrist_close_threshold = 0.3
+            hand_raised_margin = 0.05
             
-            # Check if hands are raised
+            # Hands raised
             left_hand_raised = left_wrist.y < (left_shoulder.y - hand_raised_margin)
             right_hand_raised = right_wrist.y < (right_shoulder.y - hand_raised_margin)
             
-            # ------------------------- 
+            # -------------------------
             # ARMS CROSSED
             # -------------------------
-            # Check if wrists are close to opposite elbows AND wrists are close together
-            if (left_wrist_to_right_elbow < cross_threshold and 
-                right_wrist_to_left_elbow < cross_threshold and
+            if (left_to_right_shoulder < cross_threshold and
+                right_to_left_shoulder < cross_threshold and
                 wrists_distance < wrist_close_threshold):
+                
                 message = "Arms Crossed"
             
             # -------------------------
-            # VICTORY POSE (Both hands CLEARLY up)
+            # VICTORY POSE
             # -------------------------
             elif left_hand_raised and right_hand_raised:
                 message = "Victory Pose"
-            
-            # -------------------------
-            # LEFT HAND RAISED (and right hand NOT raised)
-            # -------------------------
-            elif left_hand_raised and not right_hand_raised:
-                message = "Right Hand Raised"
-            
-            # -------------------------
-            # RIGHT HAND RAISED (and left hand NOT raised)
-            # -------------------------
-            elif right_hand_raised and not left_hand_raised:
-                message = "Left Hand Raised"
         
         return message

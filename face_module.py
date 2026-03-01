@@ -26,6 +26,6 @@ class FaceDetector:
                     y = int(landmark.y * h)
                     cv2.circle(frame, (x, y), 1, (0, 255, 0), -1)
 
-            message = "Face Keypoints Detected"
+            message = "Face Detected"
 
         return message

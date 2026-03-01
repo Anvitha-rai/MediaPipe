@@ -14,7 +14,10 @@ class HandDetector:
 
     def detect(self, frame, rgb_frame):
         results = self.hands.process(rgb_frame)
+        
         message = ""
+        left_raised = False
+        right_raised = False
 
         if results.multi_hand_landmarks and results.multi_handedness:
 
@@ -28,14 +31,15 @@ class HandDetector:
                     mp_hands.HAND_CONNECTIONS
                 )
 
-                # Detect if fingers are open
                 landmarks = hand_landmarks.landmark
 
+                # Finger tips
                 index_tip = landmarks[8]
                 middle_tip = landmarks[12]
                 ring_tip = landmarks[16]
                 pinky_tip = landmarks[20]
 
+                # Finger joints
                 index_pip = landmarks[6]
                 middle_pip = landmarks[10]
                 ring_pip = landmarks[14]
@@ -54,10 +58,19 @@ class HandDetector:
 
                 hand_label = handedness.classification[0].label
 
+                # Check if this hand is raised
                 if fingers_open == 4:
                     if hand_label == "Left":
-                        message = "Left Hand Raised"
+                        left_raised = True
                     elif hand_label == "Right":
-                        message = "Right Hand Raised"
+                        right_raised = True
+
+        # Decide message AFTER checking both hands
+        if left_raised and right_raised:
+            message = "Both Hands Raised"
+        elif left_raised:
+            message = "Left Hand Raised"
+        elif right_raised:
+            message = "Right Hand Raised"
 
         return message
